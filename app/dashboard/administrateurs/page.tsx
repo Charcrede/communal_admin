@@ -366,7 +366,7 @@ export default function AdministrateursPage() {
                   
                   <div className="pt-2 border-t border-gray-100">
                     <p className="text-xs text-gray-500">
-                      Créé le {new Date(admin.createdAt).toLocaleDateString('fr-FR')}
+                      Créé le {new Date(admin.created_at).toLocaleDateString('fr-FR')}
                     </p>
                   </div>
                 </div>

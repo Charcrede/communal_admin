@@ -204,7 +204,7 @@ export default function RubriquesPage() {
                         {rubrique.name}
                       </CardTitle>
                       <p className="text-xs text-gray-500">
-                        Créée le {new Date(rubrique.createdAt).toLocaleDateString('fr-FR')}
+                        Créée le {new Date(rubrique.created_at).toLocaleDateString('fr-FR')}
                       </p>
                     </div>
                   </div>

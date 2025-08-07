@@ -348,7 +348,7 @@ export default function MediasPage() {
                 </p>
                 <div className="mt-3 pt-3 border-t border-gray-100">
                   <p className="text-xs text-gray-500">
-                    Ajouté le {new Date(media.createdAt).toLocaleDateString('fr-FR')}
+                    Ajouté le {new Date(media.created_at).toLocaleDateString('fr-FR')}
                   </p>
                 </div>
               </CardContent>
