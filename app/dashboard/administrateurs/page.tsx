@@ -30,7 +30,7 @@ export default function AdministrateursPage() {
 
   const fetchAdmins = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/admins/`, {
+      const response = await axios.get(`${apiUrl}/v1/admins/`, {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
       setAdmins(response.data);
@@ -63,7 +63,7 @@ export default function AdministrateursPage() {
     setIsLoading(true);
     
     try {
-      await axios.post(`${apiUrl}/admins/`, adminData, {
+      await axios.post(`${apiUrl}/v1/admins/`, adminData, {
         headers: { 
           Authorization: `Bearer ${getToken()}`,
           "Content-Type": "application/json"
@@ -87,7 +87,7 @@ export default function AdministrateursPage() {
     }
 
     try {
-      await axios.delete(`${apiUrl}/admins/${id}`, {
+      await axios.delete(`${apiUrl}/v1/admins/${id}`, {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
       toast.success("Administrateur supprimé avec succès !");

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { Plus, FileText, Edit, Trash2, Upload, X, ChevronLeft, ChevronRight, Search } from "lucide-react";
-import { CreateArticleData, Article, Rubric } from "@/lib/types";
+import { CreateArticleData, Article, Rubric, Media } from "@/lib/types";
 import { getToken } from "@/lib/auth";
 import axios from "axios";
 import { toast } from "sonner";
@@ -20,6 +20,7 @@ export default function ArticlesPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [files, setFiles] = useState<FileList | null>(null);
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   const [articleData, setArticleData] = useState<CreateArticleData>({
     title: "",
     content: "",
@@ -29,7 +30,7 @@ export default function ArticlesPage() {
     value: rubric.id,
     label: rubric.name
   }));
-  const [selectedMedia, setSelectedMedia] = useState<string[]>([]);
+  const [selectedMedia, setSelectedMedia] = useState<Media[]>([]);
   const [activeMediaIndex, setActiveMediaIndex] = useState<number>(0);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
 
@@ -38,14 +39,14 @@ export default function ArticlesPage() {
   const fetchData = async (query: string = "") => {
     try {
       const [articlesRes, rubriquesRes] = await Promise.all([
-        axios.get(`${apiUrl}/articles/${query ? "?search=" + query : ""}`, {
+        axios.get(`${apiUrl}/v1/articles/${query ? "?search=" + query : ""}`, {
           headers: { Authorization: `Bearer ${getToken()}` },
         }),
-        axios.get(`${apiUrl}/rubrics/`, {
+        axios.get(`${apiUrl}/v1/rubrics/`, {
           headers: { Authorization: `Bearer ${getToken()}` },
         })
       ]);
-      setArticles(articlesRes.data?.results || articlesRes.data);
+      setArticles(articlesRes.data?.data || articlesRes.data);
       setRubriques(rubriquesRes.data);
     } catch (error) {
       toast.error("Erreur lors du chargement des données");
@@ -85,14 +86,13 @@ export default function ArticlesPage() {
       const formData = new FormData();
       formData.append("title", articleData.title);
       formData.append("content", articleData.content);
-      formData.append("rubric", articleData.rubricId);
+      formData.append("rubric_id", articleData.rubricId);
       if (files) {
         for (let i = 0; i < files.length; i++) {
-          formData.append("images", files[i]);
+          formData.append("media[]", files[i]);
         }
-        formData.append("length", files.length.toString());
       }
-      await axios.post(`${apiUrl}/articles/`, formData, {
+      await axios.post(`${apiUrl}/v1/articles/`, formData, {
         headers: {
           Authorization: `Bearer ${getToken()}`,
           "Content-Type": "multipart/form-data",
@@ -113,7 +113,7 @@ export default function ArticlesPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer cet article ?")) return;
     try {
-      await axios.delete(`${apiUrl}/articles/${id}/`, {
+      await axios.delete(`${apiUrl}/v1/articles/${id}/`, {
         headers: { Authorization: `Bearer ${getToken()}` },
       });
       toast.success("Article supprimé avec succès !");
@@ -123,7 +123,7 @@ export default function ArticlesPage() {
     }
   };
 
-  const openMediaModal = (media: string[]) => {
+  const openMediaModal = (media: Media[]) => {
     setSelectedMedia(media);
     setActiveMediaIndex(0);
     setIsMediaModalOpen(true);
@@ -356,10 +356,37 @@ export default function ArticlesPage() {
                   {article.content.length > 200 ? `${article.content.substring(0, 200)}...` : article.content}
                 </p>
                 {article.media && article.media.length > 0 && (
+                  // <div className="flex items-center gap-2 text-sm text-gray-500 cursor-pointer" onClick={() => openMediaModal(article.media)}>
+                  //   <Upload className="w-4 h-4" />
+                  //   <span>{article.media.length} média(s) attaché(s)</span>
+                  // </div>
                   <div className="flex items-center gap-2 text-sm text-gray-500 cursor-pointer" onClick={() => openMediaModal(article.media)}>
-                    <Upload className="w-4 h-4" />
-                    <span>{article.media.length} média(s) attaché(s)</span>
-                  </div>
+                      {article.media.map((media, index) => {
+                        return (
+                          <div
+                            key={index}
+                            onClick={() => setActiveMediaIndex(index)}
+                            className={`w-20 h-20 rounded-md overflow-hidden cursor-pointer border ${activeMediaIndex === index ? 'border-green-500' : 'border-transparent'
+                              }`}
+                          >
+                            {media.type == 'video' ? (
+                              <video
+                                src={`${baseUrl}${media.url}`}
+                                className="w-full h-full object-cover"
+                                muted
+                                autoPlay
+                              />
+                            ) : (
+                              <img
+                                src={`${baseUrl}${media.url}`}
+                                alt={`thumb-${index}`}
+                                className="w-full h-full object-cover"
+                              />
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>  
                 )}
               </CardContent>
             </Card>
@@ -375,15 +402,16 @@ export default function ArticlesPage() {
                 </button>
 
                 {/* ✅ Image ou Vidéo selon l'extension */}
-                {/\.(mp4|mov|webm|ogg)$/i.test(selectedMedia[activeMediaIndex]) ? (
+                {selectedMedia[activeMediaIndex].type == 'video' ? (
                   <video
-                    src={`http://localhost:8000/media/${selectedMedia[activeMediaIndex]}`}
+                    src={`${baseUrl}${selectedMedia[activeMediaIndex].url}`}
                     controls
+                    autoPlay
                     className="object-contain max-h-[60vh] mx-auto"
                   />
                 ) : (
                   <img
-                    src={`http://localhost:8000/media/${selectedMedia[activeMediaIndex]}`}
+                    src={`${baseUrl}${selectedMedia[activeMediaIndex].url}`}
                     alt="media preview"
                     className="object-contain max-h-[60vh] mx-auto"
                   />
@@ -397,7 +425,6 @@ export default function ArticlesPage() {
               {/* ✅ Liste des miniatures */}
               <div className="flex justify-center overflow-x-auto gap-2 p-4 bg-gray-100">
                 {selectedMedia.map((media, index) => {
-                  const isVideo = /\.(mp4|mov|webm|ogg)$/i.test(media);
                   return (
                     <div
                       key={index}
@@ -405,15 +432,15 @@ export default function ArticlesPage() {
                       className={`w-20 h-20 rounded-md overflow-hidden cursor-pointer border ${activeMediaIndex === index ? 'border-green-500' : 'border-transparent'
                         }`}
                     >
-                      {isVideo ? (
+                      {media.type == 'video' ? (
                         <video
-                          src={`http://localhost:8000/media/${media}`}
+                          src={`${baseUrl}${media.url}`}
                           className="w-full h-full object-cover"
                           muted
                         />
                       ) : (
                         <img
-                          src={`http://localhost:8000/media/${media}`}
+                          src={`${baseUrl}${media.url}`}
                           alt={`thumb-${index}`}
                           className="w-full h-full object-cover"
                         />

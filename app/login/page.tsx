@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 
 export default function LoginPage() {
   const [credentials, setCredentials] = useState<LoginCredentials>({
-    username: '',
+    email: '',
     password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -22,7 +22,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!credentials.username || !credentials.password) {
+    if (!credentials.email || !credentials.password) {
       toast.error('Veuillez remplir tous les champs');
       return;
     }
@@ -89,14 +89,14 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <Label htmlFor="username" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                   Adresse e-mail
                 </Label>
                 <Input
-                  id="username"
+                  id="email"
                   type="text"
-                  value={credentials.username}
-                  onChange={handleInputChange('username')}
+                  value={credentials.email}
+                  onChange={handleInputChange('email')}
                   className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#074020]/20 focus:border-[#074020] transition-colors"
                   placeholder="admin@example.com"
                   disabled={isLoading}
@@ -134,7 +134,7 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                disabled={isLoading || !credentials.username || !credentials.password}
+                disabled={isLoading || !credentials.email || !credentials.password}
                 className="w-full bg-[#074020] hover:bg-[#074020]/90 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (

@@ -12,7 +12,7 @@ export interface Article {
   content: string;
   rubric_id: string;
   rubric?: Rubric;
-  media: string[];
+  media: Media[];
   created_at: string;
   updated_at: string;
 }

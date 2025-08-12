@@ -1,8 +1,10 @@
 "use client";
 
 import axios from 'axios';
+import { log } from 'console';
 
 const API_URL = process.env.NEXT_PUBLIC_API;
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 function getCookie(name: string): string | null {
   const cookies = document.cookie ? document.cookie.split('; ') : [];
   for (let i = 0; i < cookies.length; i++) {
@@ -16,7 +18,7 @@ function getCookie(name: string): string | null {
 
 
 export interface LoginCredentials {
-  username: string;
+  email: string;
   password: string;
 }
 
@@ -25,28 +27,25 @@ export interface AuthResponse {
   user: {
     id: string;
     name: string;
-    username: string;
+    email: string;
     role: string;
   };
 }
 
-export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
-  const response = await axios.post(`${API_URL}/auth/login/`, credentials, {
-  headers: {
-    "X-CSRFToken": getCookie("csrftoken"),
-  },
-  withCredentials: true,
-});
-  
-  if (response.data.access) {
-    
-    localStorage.setItem('token', response.data.access);
-    // Set cookie for middleware
-    document.cookie = `auth-token=${response.data.access}; path=/; max-age=86400`;
-  }
-  
-  return response.data;
+export const login = async (credentials: { email: string; password: string }) => {
+  // Étape 1 : récupérer le cookie CSRF de Sanctum
+  await axios.get(`${BASE_URL}/sanctum/csrf-cookie`, {
+    withCredentials: true,
+  });
+  // Étape 2 : login
+  const response = await axios.post(`${API_URL}/auth/login`, credentials, {
+    withCredentials: true, // indispensable pour envoyer/recevoir cookies
+  });
+  console.log(response.data);
+  localStorage.setItem('token', response.data.token);
+  return response.data; // Sanctum renvoie l'utilisateur + éventuellement un token
 };
+
 
 export const logout = () => {
   localStorage.removeItem('token');
