@@ -27,7 +27,7 @@ export default function MediasPage() {
 
   const fetchMedias = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/v1/medias/`, {
+      const response = await axios.get(`${apiUrl}/medias/`, {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
       setMedias(response.data);
@@ -64,7 +64,7 @@ export default function MediasPage() {
       formData.append("description", mediaData.description);
       formData.append("file", mediaData.file);
 
-      await axios.post(`${apiUrl}/v1/medias/`, formData, {
+      await axios.post(`${apiUrl}/medias/`, formData, {
         headers: { 
           Authorization: `Bearer ${getToken()}`,
           "Content-Type": "multipart/form-data"
@@ -88,7 +88,7 @@ export default function MediasPage() {
     }
 
     try {
-      await axios.delete(`${apiUrl}/v1/medias/${id}`, {
+      await axios.delete(`${apiUrl}/medias/${id}`, {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
       toast.success("Média supprimé avec succès !");

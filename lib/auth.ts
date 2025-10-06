@@ -32,17 +32,26 @@ export interface AuthResponse {
   };
 }
 
+// export const login = async (credentials: { email: string; password: string }) => {
+//   // Étape 1 : récupérer le cookie CSRF de Sanctum
+//   await axios.get(`${BASE_URL}/sanctum/csrf-cookie`, {
+//     withCredentials: true,
+//   });
+//   // Étape 2 : login
+//   const response = await axios.post(`${API_URL}/auth/login`, credentials, {
+//     withCredentials: true, // indispensable pour envoyer/recevoir cookies
+//   });
+//   console.log(response.data);
+//   localStorage.setItem('token', response.data.token);
+//   return response.data; // Sanctum renvoie l'utilisateur + éventuellement un token
+// };
+
 export const login = async (credentials: { email: string; password: string }) => {
-  // Étape 1 : récupérer le cookie CSRF de Sanctum
-  await axios.get(`${BASE_URL}/sanctum/csrf-cookie`, {
-    withCredentials: true,
-  });
   // Étape 2 : login
-  const response = await axios.post(`${API_URL}/auth/login`, credentials, {
-    withCredentials: true, // indispensable pour envoyer/recevoir cookies
-  });
-  console.log(response.data);
-  localStorage.setItem('token', response.data.token);
+  const response = await axios.post(`${API_URL}/auth/admin/login`, credentials);
+  console.log(response.data.data);
+  localStorage.setItem('token', response.data.data.access_token);
+  localStorage.setItem('admin', JSON.stringify(response.data.data.admin));
   return response.data; // Sanctum renvoie l'utilisateur + éventuellement un token
 };
 

@@ -10,8 +10,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <main className="ml-64 flex-1 overflow-hidden">
-        <div className="h-full px-8 py-6">
+      <main className="flex-1 overflow-hidden ml-0 md:ml-64 transition-all duration-300">
+        <div className="h-full px-4 py-6 md:px-8">
           {children}
         </div>
       </main>

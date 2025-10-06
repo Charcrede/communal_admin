@@ -26,10 +26,10 @@ export default function RubriquesPage() {
 
   const fetchRubriques = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/v1/rubrics/`, {
+      const response = await axios.get(`${apiUrl}/rubrics/`, {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
-      setRubriques(response.data);
+      setRubriques(response.data.data);
     } catch (error) {
       toast.error("Erreur lors du chargement des rubriques");
     }
@@ -46,7 +46,7 @@ export default function RubriquesPage() {
     setIsLoading(true);
     
     try {
-      await axios.post(`${apiUrl}/v1/rubrics/`, rubricData, {
+      await axios.post(`${apiUrl}/rubrics/`, rubricData, {
         headers: { 
           Authorization: `Bearer ${getToken()}`,
           "Content-Type": "application/json"
@@ -70,7 +70,7 @@ export default function RubriquesPage() {
     }
 
     try {
-      await axios.delete(`${apiUrl}/v1/rubrics/${id}`, {
+      await axios.delete(`${apiUrl}/rubrics/${id}`, {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
       toast.success("Rubrique supprimée avec succès !");

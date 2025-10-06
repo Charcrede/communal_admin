@@ -30,10 +30,10 @@ export default function AdministrateursPage() {
 
   const fetchAdmins = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/v1/admins/`, {
+      const response = await axios.get(`${apiUrl}/admins/`, {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
-      setAdmins(response.data);
+      setAdmins(response.data.data);
     } catch (error) {
       toast.error("Erreur lors du chargement des administrateurs");
     }
@@ -63,7 +63,7 @@ export default function AdministrateursPage() {
     setIsLoading(true);
     
     try {
-      await axios.post(`${apiUrl}/v1/admins/`, adminData, {
+      await axios.post(`${apiUrl}/admins/`, adminData, {
         headers: { 
           Authorization: `Bearer ${getToken()}`,
           "Content-Type": "application/json"
@@ -87,7 +87,7 @@ export default function AdministrateursPage() {
     }
 
     try {
-      await axios.delete(`${apiUrl}/v1/admins/${id}`, {
+      await axios.delete(`${apiUrl}/admins/${id}`, {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
       toast.success("Administrateur supprimé avec succès !");

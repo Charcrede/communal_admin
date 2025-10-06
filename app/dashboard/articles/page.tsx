@@ -39,15 +39,16 @@ export default function ArticlesPage() {
   const fetchData = async (query: string = "") => {
     try {
       const [articlesRes, rubriquesRes] = await Promise.all([
-        axios.get(`${apiUrl}/v1/articles/${query ? "?search=" + query : ""}`, {
+        axios.get(`${apiUrl}/articles/${query ? "?search=" + query : ""}`, {
           headers: { Authorization: `Bearer ${getToken()}` },
         }),
-        axios.get(`${apiUrl}/v1/rubrics/`, {
+        axios.get(`${apiUrl}/rubrics/`, {
           headers: { Authorization: `Bearer ${getToken()}` },
         })
       ]);
-      setArticles(articlesRes.data?.data || articlesRes.data);
-      setRubriques(rubriquesRes.data);
+      console.log(articlesRes.data);
+      setArticles(articlesRes.data?.data?.data);
+      setRubriques(rubriquesRes.data?.data);
     } catch (error) {
       toast.error("Erreur lors du chargement des données");
     }
@@ -75,29 +76,69 @@ export default function ArticlesPage() {
     }
   };
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!articleData.title.trim() || !articleData.content.trim() || !articleData.rubricId) {
+  //     toast.error("Veuillez remplir tous les champs obligatoires");
+  //     return;
+  //   }
+  //   setIsLoading(true);
+  //   try {
+  //     const formData = new FormData();
+  //     formData.append("title", articleData.title);
+  //     formData.append("content", articleData.content);
+  //     formData.append("rubric_id", articleData.rubricId);
+  //     if (files) {
+  //       for (let i = 0; i < files.length; i++) {
+  //         formData.append("media[]", files[i]);
+  //       }
+  //     }
+  //     await axios.post(`${apiUrl}/articles/`, formData, {
+  //       headers: {
+  //         Authorization: `Bearer ${getToken()}`,
+  //         "Content-Type": "multipart/form-data",
+  //       },
+  //     });
+  //     toast.success("Article créé avec succès !");
+  //     setArticleData({ title: "", content: "", rubricId: "" });
+  //     setFiles(null);
+  //     setShowCreateForm(false);
+  //     fetchData();
+  //   } catch (error: any) {
+  //     toast.error(error.response?.data?.message || "Erreur lors de la création");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!articleData.title.trim() || !articleData.content.trim() || !articleData.rubricId) {
       toast.error("Veuillez remplir tous les champs obligatoires");
       return;
     }
+
     setIsLoading(true);
     try {
       const formData = new FormData();
       formData.append("title", articleData.title);
       formData.append("content", articleData.content);
-      formData.append("rubric_id", articleData.rubricId);
+      formData.append("rubric_id", articleData.rubricId); // ✅ camelCase attendu côté DTO
+
       if (files) {
         for (let i = 0; i < files.length; i++) {
-          formData.append("media[]", files[i]);
+          formData.append("files", files[i]); // ✅ correspond à @UseInterceptors(FilesInterceptor('files'))
         }
       }
-      await axios.post(`${apiUrl}/v1/articles/`, formData, {
+
+      await axios.post(`${apiUrl}/articles`, formData, {
         headers: {
           Authorization: `Bearer ${getToken()}`,
           "Content-Type": "multipart/form-data",
         },
       });
+
       toast.success("Article créé avec succès !");
       setArticleData({ title: "", content: "", rubricId: "" });
       setFiles(null);
@@ -110,10 +151,11 @@ export default function ArticlesPage() {
     }
   };
 
+
   const handleDelete = async (id: string) => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer cet article ?")) return;
     try {
-      await axios.delete(`${apiUrl}/v1/articles/${id}/`, {
+      await axios.delete(`${apiUrl}/articles/${id}/`, {
         headers: { Authorization: `Bearer ${getToken()}` },
       });
       toast.success("Article supprimé avec succès !");
@@ -357,36 +399,60 @@ export default function ArticlesPage() {
                 </p>
                 {article.media && article.media.length > 0 && (
                   // <div className="flex items-center gap-2 text-sm text-gray-500 cursor-pointer" onClick={() => openMediaModal(article.media)}>
-                  //   <Upload className="w-4 h-4" />
-                  //   <span>{article.media.length} média(s) attaché(s)</span>
+                  //   {article.media.map((media, index) => {
+                  //     return (
+                  //       <div
+                  //         key={index}
+                  //         onClick={() => setActiveMediaIndex(index)}
+                  //         className={`w-20 h-20 rounded-md overflow-hidden cursor-pointer border ${activeMediaIndex === index ? 'border-green-500' : 'border-transparent'
+                  //           }`}
+                  //       >
+                  //         {media.type == 'video' ? (
+                  //           <video
+                  //             src={`${baseUrl}${media.url}`}
+                  //             className="w-full h-full object-cover"
+                  //             muted
+                  //             autoPlay
+                  //           />
+                  //         ) : (
+                  //           <img
+                  //             src={`${baseUrl}${media.url}`}
+                  //             alt={`thumb-${index}`}
+                  //             className="w-full h-full object-cover"
+                  //           />
+                  //         )}
+                  //       </div>
+                  //     );
+                  //   })}
                   // </div>
                   <div className="flex items-center gap-2 text-sm text-gray-500 cursor-pointer" onClick={() => openMediaModal(article.media)}>
-                      {article.media.map((media, index) => {
-                        return (
-                          <div
-                            key={index}
-                            onClick={() => setActiveMediaIndex(index)}
-                            className={`w-20 h-20 rounded-md overflow-hidden cursor-pointer border ${activeMediaIndex === index ? 'border-green-500' : 'border-transparent'
-                              }`}
-                          >
-                            {media.type == 'video' ? (
-                              <video
-                                src={`${baseUrl}${media.url}`}
-                                className="w-full h-full object-cover"
-                                muted
-                                autoPlay
-                              />
-                            ) : (
-                              <img
-                                src={`${baseUrl}${media.url}`}
-                                alt={`thumb-${index}`}
-                                className="w-full h-full object-cover"
-                              />
-                            )}
-                          </div>
-                        );
-                      })}
-                  </div>  
+                    {article.media.map((media, index) => {
+                      return (
+                        <div
+                          key={index}
+                          onClick={() => setActiveMediaIndex(index)}
+                          className={`w-20 h-20 rounded-md overflow-hidden cursor-pointer border ${activeMediaIndex === index ? 'border-green-500' : 'border-transparent'
+                            }`}
+                        >
+                          {media.type == 'video' ? (
+                            <video
+                            onClick={() => console.log(`${baseUrl}${media.url}`)}
+                              src={`${baseUrl}${media.url}`}
+                              className="w-full h-full object-cover"
+                              muted
+                              autoPlay
+                            />
+                          ) : (
+                            <img
+                              src={`${baseUrl}${media.url}`}
+                              alt={`thumb-${index}`}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </CardContent>
             </Card>
