@@ -318,7 +318,7 @@ export default function AdministrateursPage() {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`p-3 rounded-full ${
+                    {/* <div className={`p-2 md:p-2 rounded-full ${
                       admin.role === 'super_admin' 
                         ? 'bg-[#940806]/10 text-[#940806]' 
                         : 'bg-[#074020]/10 text-[#074020]'
@@ -328,7 +328,7 @@ export default function AdministrateursPage() {
                       ) : (
                         <Shield className="w-6 h-6" />
                       )}
-                    </div>
+                    </div> */}
                     <div>
                       <CardTitle className="text-lg font-semibold text-gray-900">
                         {admin.name}
