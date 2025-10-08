@@ -40,12 +40,22 @@ export function Sidebar() {
   return (
     <>
       {/* --- Bouton Burger --- */}
-      <button
-        onClick={toggleSidebar}
-        className="md:hidden fixed top-4 left-4 z-50 bg-opacity-50 rounded-lg bg-white p-2 shadow-lg text-gray-800"
-      >
-        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-      </button>
+      <div className="md:hidden z-50 fixed top-0 mb-16 flex justify-between items-center px-4 w-full bg-opacity-50 bg-gray-10 border-b shadow-sm">
+        <button
+          onClick={toggleSidebar}
+          className="rounded-lg bg-white p-2 shadow-lg text-gray-800"
+        >
+          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+        <div className={`${isOpen ? "opacity-0" : "opacity-100"} flex items-center gap-2 text-sm text-gray-800 px-2 py-3 duration-500`}>
+          <img src="/logo.png" alt="Logo" className="h-8 w-8 shrink-0" />
+          <span className="truncate">
+            {admin?.name || "Administrateur"} –{" "}
+            {admin?.role === "super_admin" ? "Super Admin" : "Admin"}
+          </span>
+        </div>
+      </div>
+
 
       {/* --- Overlay mobile --- */}
       <div

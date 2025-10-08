@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CustomSelect } from "@/components/ui/custom-select";
-import { Plus, FileText, Edit, Trash2, Upload, X, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Plus, FileText, Edit, Trash2, Upload, X, ChevronLeft, ChevronRight, Search, Newspaper } from "lucide-react";
 import { CreateArticleData, Article, Rubric, Media } from "@/lib/types";
 import { getToken } from "@/lib/auth";
 import axios from "axios";
@@ -39,7 +39,7 @@ export default function ArticlesPage() {
   const fetchData = async (query: string = "") => {
     try {
       const [articlesRes, rubriquesRes] = await Promise.all([
-        axios.get(`${apiUrl}/articles/${query ? "?search=" + query : ""}`, {
+        axios.get(`${apiUrl}/articles/${query ? "?search=" + query.toLocaleLowerCase() : ""}`, {
           headers: { Authorization: `Bearer ${getToken()}` },
         }),
         axios.get(`${apiUrl}/rubrics/`, {
@@ -51,7 +51,7 @@ export default function ArticlesPage() {
       setRubriques(rubriquesRes.data?.data);
     } catch (error) {
       toast.error("Erreur lors du chargement des données");
-    }
+    } 
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -360,24 +360,19 @@ export default function ArticlesPage() {
 
 
         {/* Articles List */}
-        <div className="grid gap-6">
+        <div className="grid gap-6 w-full max-w-full md:grid-cols-2 lg:grid-cols-3">
           {articles.map((article) => (
             <Card key={article.id} className="border-0 shadow-md hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
                     <div className="p-3 bg-green-100 text-green-600 rounded-lg">
-                      <FileText className="w-6 h-6" />
+                      <Newspaper className="w-6 h-6" />
                     </div>
                     <div className="flex-1">
                       <CardTitle className="text-xl font-semibold text-gray-900 mb-2">
                         {article.title}
                       </CardTitle>
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span>Rubrique: {article.rubric?.name || "Non définie"}</span>
-                        <span>•</span>
-                        <span>Créé le {new Date(article.created_at).toLocaleDateString('fr-FR')}</span>
-                      </div>
                     </div>
                   </div>
                   <div className="flex gap-1">
@@ -391,6 +386,12 @@ export default function ArticlesPage() {
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
+                </div>
+
+                <div className="flex items-center gap-4 text-sm text-gray-500">
+                  <span>Rubrique: {article.rubric?.name || "Non définie"}</span>
+                  <span>•</span>
+                  <span>Créé le {new Date(article.created_at).toLocaleDateString('fr-FR')}</span>
                 </div>
               </CardHeader>
               <CardContent>
@@ -436,7 +437,7 @@ export default function ArticlesPage() {
                         >
                           {media.type == 'video' ? (
                             <video
-                            onClick={() => console.log(`${baseUrl}${media.url}`)}
+                              onClick={() => console.log(`${baseUrl}${media.url}`)}
                               src={`${baseUrl}${media.url}`}
                               className="w-full h-full object-cover"
                               muted
