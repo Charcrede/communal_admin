@@ -30,7 +30,8 @@ export default function MediasPage() {
       const response = await axios.get(`${apiUrl}/medias/`, {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
-      setMedias(response.data);
+      console.log(response.data);
+      setMedias(response.data.data);
     } catch (error) {
       toast.error("Erreur lors du chargement des médias");
     }
@@ -154,17 +155,17 @@ export default function MediasPage() {
               Gérez vos images, vidéos et fichiers audio
             </p>
           </div>
-          <Button
+          {/* <Button
             onClick={() => setShowCreateForm(true)}
             className="bg-[#074020] hover:bg-[#074020]/90 text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
             Nouveau média
-          </Button>
+          </Button> */}
         </div>
 
         {/* Search */}
-        <div className="relative max-w-md">
+        {/* <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             placeholder="Rechercher un média..."
@@ -172,10 +173,10 @@ export default function MediasPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 border-gray-200 focus:border-[#074020] focus:ring-[#074020]/20"
           />
-        </div>
+        </div> */}
 
         {/* Create Form */}
-        {showCreateForm && (
+        {/* {showCreateForm && (
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="text-xl font-bold text-[#940806] font-sofia uppercase">
@@ -216,7 +217,6 @@ export default function MediasPage() {
                   />
                 </div>
 
-                {/* File Upload */}
                 <div className="border border-gray-200 rounded-lg p-4">
                   <Label className="text-sm font-medium mb-2 block">
                     Fichier :
@@ -290,7 +290,7 @@ export default function MediasPage() {
               </form>
             </CardContent>
           </Card>
-        )}
+        )} */}
 
         {/* Medias Grid */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -330,7 +330,7 @@ export default function MediasPage() {
               </CardHeader>
               
               {/* Media Preview */}
-              {media.type === 'image' && (
+              {media.type === 'image' ? (
                 <div className="px-6 pb-4">
                   <div className="w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
                     <img 
@@ -340,8 +340,18 @@ export default function MediasPage() {
                     />
                   </div>
                 </div>
-              )}
-              
+              ) : media.type === 'video' ? (
+                <div className="px-6 pb-4">
+                  <div className="w-full h-32 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                    <video
+                      src={media.url}
+                      controls
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              ) : null}
+
               <CardContent className="pt-0">
                 <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">
                   {media.description}
