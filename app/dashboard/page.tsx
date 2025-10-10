@@ -47,7 +47,7 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Activity className="w-4 h-4" />
-            Dernière mise à jour: {new Date().toLocaleString('fr-FR')}
+            Dernière mise à jour: { formatDate(new Date().toLocaleString('fr-FR')) }
           </div>
         </div>
 
