@@ -12,6 +12,7 @@ import { CreateArticleData, Article, Rubric, Media } from "@/lib/types";
 import { getToken } from "@/lib/auth";
 import axios from "axios";
 import { toast } from "sonner";
+import ArticleCard from "@/components/ArticleCard";
 
 export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -75,6 +76,11 @@ export default function ArticlesPage() {
       setFiles(dt.files);
     }
   };
+
+   const [isExpanded, setIsExpanded] = useState(false);
+
+  const toggleExpand = () => setIsExpanded(!isExpanded);
+
 
   // const handleSubmit = async (e: React.FormEvent) => {
   //   e.preventDefault();
@@ -362,130 +368,43 @@ export default function ArticlesPage() {
         {/* Articles List */}
         <div className="grid gap-6 w-full max-w-full md:grid-cols-2 lg:grid-cols-3">
           {articles.map((article) => (
-            <Card key={article.id} className="border-0 shadow-md hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-green-100 text-green-600 rounded-lg">
-                      <Newspaper className="w-6 h-6" />
-                    </div>
-                    <div className="flex-1">
-                      <CardTitle className="text-xl font-semibold text-gray-900 mb-2">
-                        {article.title}
-                      </CardTitle>
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    <button className="p-2 text-gray-400 hover:text-[#074020] hover:bg-gray-100 rounded-lg transition-colors">
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(article.id)}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 text-sm text-gray-500">
-                  <span>Rubrique: {article.rubric?.name || "Non définie"}</span>
-                  <span>•</span>
-                  <span>Créé le {new Date(article.created_at).toLocaleDateString('fr-FR')}</span>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  {article.content.length > 200 ? `${article.content.substring(0, 200)}...` : article.content}
-                </p>
-                {article.media && article.media.length > 0 && (
-                  // <div className="flex items-center gap-2 text-sm text-gray-500 cursor-pointer" onClick={() => openMediaModal(article.media)}>
-                  //   {article.media.map((media, index) => {
-                  //     return (
-                  //       <div
-                  //         key={index}
-                  //         onClick={() => setActiveMediaIndex(index)}
-                  //         className={`w-20 h-20 rounded-md overflow-hidden cursor-pointer border ${activeMediaIndex === index ? 'border-green-500' : 'border-transparent'
-                  //           }`}
-                  //       >
-                  //         {media.type == 'video' ? (
-                  //           <video
-                  //             src={`${baseUrl}${media.url}`}
-                  //             className="w-full h-full object-cover"
-                  //             muted
-                  //             autoPlay
-                  //           />
-                  //         ) : (
-                  //           <img
-                  //             src={`${baseUrl}${media.url}`}
-                  //             alt={`thumb-${index}`}
-                  //             className="w-full h-full object-cover"
-                  //           />
-                  //         )}
-                  //       </div>
-                  //     );
-                  //   })}
-                  // </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-500 cursor-pointer" onClick={() => openMediaModal(article.media)}>
-                    {article.media.map((media, index) => {
-                      return (
-                        <div
-                          key={index}
-                          onClick={() => setActiveMediaIndex(index)}
-                          className={`w-20 h-20 rounded-md overflow-hidden cursor-pointer border ${activeMediaIndex === index ? 'border-green-500' : 'border-transparent'
-                            }`}
-                        >
-                          {media.type == 'video' ? (
-                            <video
-                              onClick={() => console.log(`${baseUrl}${media.url}`)}
-                              src={`${baseUrl}${media.url}`}
-                              className="w-full h-full object-cover"
-                              muted
-                              autoPlay
-                            />
-                          ) : (
-                            <img
-                              src={`${baseUrl}${media.url}`}
-                              alt={`thumb-${index}`}
-                              className="w-full h-full object-cover"
-                            />
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <ArticleCard 
+            key={article.id} 
+            article={article}
+            activeMediaIndex={activeMediaIndex}
+            setActiveMediaIndex={setActiveMediaIndex}
+            handleDelete={handleDelete} 
+            openMediaModal={openMediaModal}
+             />
           ))}
         </div>
 
         {isMediaModalOpen && (
           <div className="fixed inset-0 z-50 bg-black/70 flex flex-col items-center justify-center p-6">
             <div className="relative max-w-4xl w-full max-h-[80vh] bg-white rounded-lg overflow-hidden shadow-lg">
-              <div className="flex justify-between items-center p-4">
-                <button onClick={prevMedia}>
-                  <ChevronLeft className="w-6 h-6 text-gray-600" />
+              <div className="relative flex justify-between items-center p-4">
+                <button onClick={prevMedia} className="absolute left-5 top-1/2 -translate-y-1/2 bg-white bg-opacity-70 rounded-full p-1 shadow">
+                  <ChevronLeft className="w-8 h-8 text-gray-600" />
                 </button>
 
                 {/* ✅ Image ou Vidéo selon l'extension */}
                 {selectedMedia[activeMediaIndex].type == 'video' ? (
                   <video
-                    src={`${baseUrl}${selectedMedia[activeMediaIndex].url}`}
+                    src={`${selectedMedia[activeMediaIndex].url}`}
                     controls
                     autoPlay
                     className="object-contain max-h-[60vh] mx-auto"
                   />
                 ) : (
                   <img
-                    src={`${baseUrl}${selectedMedia[activeMediaIndex].url}`}
+                    src={`${selectedMedia[activeMediaIndex].url}`}
                     alt="media preview"
                     className="object-contain max-h-[60vh] mx-auto"
                   />
                 )}
 
-                <button onClick={nextMedia}>
-                  <ChevronRight className="w-6 h-6 text-gray-600" />
+                <button onClick={nextMedia} className="absolute right-5 top-1/2 -translate-y-1/2 bg-white bg-opacity-70 rounded-full p-1 shadow">
+                  <ChevronRight className="w-8 h-8 text-gray-600" />
                 </button>
               </div>
 
@@ -496,18 +415,18 @@ export default function ArticlesPage() {
                     <div
                       key={index}
                       onClick={() => setActiveMediaIndex(index)}
-                      className={`w-20 h-20 rounded-md overflow-hidden cursor-pointer border ${activeMediaIndex === index ? 'border-green-500' : 'border-transparent'
+                      className={`aspect-square w-auto h-auto max-w-10 max-h-10 rounded-md overflow-hidden cursor-pointer border ${activeMediaIndex === index ? 'border-green-500' : 'border-transparent'
                         }`}
                     >
                       {media.type == 'video' ? (
                         <video
-                          src={`${baseUrl}${media.url}`}
+                          src={`${media.url}`}
                           className="w-full h-full object-cover"
                           muted
                         />
                       ) : (
                         <img
-                          src={`${baseUrl}${media.url}`}
+                          src={`${media.url}`}
                           alt={`thumb-${index}`}
                           className="w-full h-full object-cover"
                         />
@@ -519,9 +438,9 @@ export default function ArticlesPage() {
 
               <button
                 onClick={closeMediaModal}
-                className="absolute top-3 right-3 text-black text-xl"
+                className="absolute top-5 right-5 text-black text-xl bg-white p-1 bg-opacity-70 rounded-full hover:bg-opacity-100 transition"
               >
-                ×
+                <X className="w-6 h-6" />
               </button>
             </div>
           </div>

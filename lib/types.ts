@@ -62,3 +62,27 @@ export interface CreateAdminData {
   password: string;
   role: 'admin' | 'super_admin';
 }
+
+export interface DashboardOverview {
+  overview: {
+    counts : [
+      {
+        title : string,
+        value : string,
+        change : string,
+        icon : any,
+        color : string,
+        trend : string,
+      }
+    ], 
+    lasts : [
+      {
+        title : string,
+        type : string,
+        action: string,
+        time : string,
+      }
+    ]
+}
+}
+

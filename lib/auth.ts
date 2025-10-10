@@ -69,6 +69,13 @@ export const getToken = (): string | null => {
   return null;
 };
 
+export const getRole = (): string | null => {
+  if (typeof window !== 'undefined') {
+    const admin = JSON.parse(localStorage.getItem('admin') || '{}');
+    return admin?.role || null;
+  }
+return null;
+};
 export const isAuthenticated = (): boolean => {
   return !!getToken();
 };
