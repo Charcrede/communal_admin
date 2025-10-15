@@ -113,7 +113,7 @@ export function Sidebar() {
         </nav>
 
         {/* --- Bas de la sidebar --- */}
-        <div className="border-t p-4 space-y-1 sm:mb-24">
+        <div className="border-t p-4 space-y-1 lg:mb-0 mb-24">
           <Link href={"/dashboard/profile"} className="flex items-center gap-2 text-sm text-gray-500 px-2 py-2">
             <span className="w-6 h-6 rounded-full bg-green-200 flex items-center justify-center">
               <User className="w-4 h-4 stroke-green-600" />
