@@ -12,10 +12,12 @@ import { CreateAdminData, Admin } from "@/lib/types";
 import { getToken } from "@/lib/auth";
 import axios from "axios";
 import { toast } from "sonner";
+import PasswordUpdateForm from "@/components/PasswordUpdateForm";
 
 export default function AdministrateursPage() {
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -338,7 +340,7 @@ export default function AdministrateursPage() {
                   </div>
                   
                   <div className="flex gap-1">
-                    <button className="p-2 text-gray-400 hover:text-[#074020] hover:bg-gray-100 rounded-lg transition-colors">
+                    <button onClick={() => setShowUpdateForm(true)} className="p-2 text-gray-400 hover:text-[#074020] hover:bg-gray-100 rounded-lg transition-colors">
                       <Edit className="w-4 h-4" />
                     </button>
                     <button 
