@@ -56,6 +56,9 @@ export default function ArticleCardContent({ article, activeMediaIndex, openMedi
                 </div>
             </CardHeader>
             <CardContent>
+                <p className="text-gray-600 font-semibold italic mb-2">
+                    {article.head}
+                </p>
                 <p className="text-gray-600 leading-relaxed mb-2">
                     {displayContent}
                 </p>

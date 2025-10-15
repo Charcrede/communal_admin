@@ -25,6 +25,7 @@ export default function ArticlesPage() {
   const [articleData, setArticleData] = useState<CreateArticleData>({
     title: "",
     content: "",
+    head: "",
     rubricId: "",
   });
   const rubricOptions = rubriques.map(rubric => ({
@@ -37,23 +38,6 @@ export default function ArticlesPage() {
 
   const apiUrl = process.env.NEXT_PUBLIC_API;
 
-  const fetchData = async (query: string = "") => {
-    try {
-      const [articlesRes, rubriquesRes] = await Promise.all([
-        axios.get(`${apiUrl}/articles/${query ? "?search=" + query.toLocaleLowerCase() : ""}`, {
-          headers: { Authorization: `Bearer ${getToken()}` },
-        }),
-        axios.get(`${apiUrl}/rubrics/`, {
-          headers: { Authorization: `Bearer ${getToken()}` },
-        })
-      ]);
-      console.log(articlesRes.data);
-      setArticles(articlesRes.data?.data?.data);
-      setRubriques(rubriquesRes.data?.data);
-    } catch (error) {
-      toast.error("Erreur lors du chargement des données");
-    } 
-  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = event.target.files;
@@ -82,59 +66,69 @@ export default function ArticlesPage() {
   const toggleExpand = () => setIsExpanded(!isExpanded);
 
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (!articleData.title.trim() || !articleData.content.trim() || !articleData.rubricId) {
-  //     toast.error("Veuillez remplir tous les champs obligatoires");
-  //     return;
-  //   }
-  //   setIsLoading(true);
-  //   try {
-  //     const formData = new FormData();
-  //     formData.append("title", articleData.title);
-  //     formData.append("content", articleData.content);
-  //     formData.append("rubric_id", articleData.rubricId);
-  //     if (files) {
-  //       for (let i = 0; i < files.length; i++) {
-  //         formData.append("media[]", files[i]);
-  //       }
-  //     }
-  //     await axios.post(`${apiUrl}/articles/`, formData, {
-  //       headers: {
-  //         Authorization: `Bearer ${getToken()}`,
-  //         "Content-Type": "multipart/form-data",
-  //       },
-  //     });
-  //     toast.success("Article créé avec succès !");
-  //     setArticleData({ title: "", content: "", rubricId: "" });
-  //     setFiles(null);
-  //     setShowCreateForm(false);
-  //     fetchData();
-  //   } catch (error: any) {
-  //     toast.error(error.response?.data?.message || "Erreur lors de la création");
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
+  const handleInputChange = (field: keyof CreateArticleData) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    localStorage.setItem('articles', JSON.stringify(articleData));
+    setArticleData(prev => ({
+      ...prev,
+      [field]: e.target.value
+    }));
+  };
 
+
+
+   // =====================
+  // 🔄 FETCH DATA
+  // =====================
+  const fetchData = async (query: string = "") => {
+    const toastId = toast.loading("Chargement des données...");
+    try {
+      const [articlesRes, rubriquesRes] = await Promise.all([
+        axios.get(`${apiUrl}/articles/${query ? "?search=" + query.toLowerCase() : ""}`, {
+          headers: { Authorization: `Bearer ${getToken()}` },
+        }),
+        axios.get(`${apiUrl}/rubrics/`, {
+          headers: { Authorization: `Bearer ${getToken()}` },
+        }),
+      ]);
+
+      setArticles(articlesRes.data?.data?.data || []);
+      setRubriques(rubriquesRes.data?.data || []);
+      toast.success("Données chargées avec succès ✅", { id: toastId });
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Erreur lors du chargement des données ❌", {
+        id: toastId,
+      });
+    }
+  };
+
+  // =====================
+  // 📝 CREATE ARTICLE
+  // =====================
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!articleData.title.trim() || !articleData.content.trim() || !articleData.rubricId) {
-      toast.error("Veuillez remplir tous les champs obligatoires");
+      toast.error("Veuillez remplir tous les champs obligatoires ⚠️");
       return;
     }
 
     setIsLoading(true);
+    const toastId = toast.loading("Création de l’article en cours...");
+
     try {
       const formData = new FormData();
       formData.append("title", articleData.title);
       formData.append("content", articleData.content);
-      formData.append("rubric_id", articleData.rubricId); // ✅ camelCase attendu côté DTO
+      formData.append("rubric_id", articleData.rubricId);
+      formData.append("head", articleData.head);
+
+      localStorage.removeItem("articles");
 
       if (files) {
         for (let i = 0; i < files.length; i++) {
-          formData.append("files", files[i]); // ✅ correspond à @UseInterceptors(FilesInterceptor('files'))
+          formData.append("files", files[i]);
         }
       }
 
@@ -145,31 +139,39 @@ export default function ArticlesPage() {
         },
       });
 
-      toast.success("Article créé avec succès !");
-      setArticleData({ title: "", content: "", rubricId: "" });
+      toast.success("Article créé avec succès 🎉", { id: toastId });
+      setArticleData({ title: "", content: "", rubricId: "", head: "" });
       setFiles(null);
       setShowCreateForm(false);
       fetchData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Erreur lors de la création");
+      toast.error(error.response?.data?.message || "Erreur lors de la création ❌", { id: toastId });
     } finally {
       setIsLoading(false);
     }
   };
 
-
+  // =====================
+  // 🗑️ DELETE ARTICLE
+  // =====================
   const handleDelete = async (id: string) => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer cet article ?")) return;
+
+    const toastId = toast.loading("Suppression en cours...");
     try {
       await axios.delete(`${apiUrl}/articles/${id}/`, {
         headers: { Authorization: `Bearer ${getToken()}` },
       });
-      toast.success("Article supprimé avec succès !");
+
+      toast.success("Article supprimé avec succès 🗑️", { id: toastId });
       fetchData();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Erreur lors de la suppression");
+      toast.error(error.response?.data?.message || "Erreur lors de la suppression ❌", { id: toastId });
     }
   };
+
+
+
 
   const openMediaModal = (media: Media[]) => {
     setSelectedMedia(media);
@@ -193,6 +195,10 @@ export default function ArticlesPage() {
 
   useEffect(() => {
     fetchData();
+    const storedArticles = localStorage.getItem('articles');
+    if (storedArticles) {
+      setArticleData(JSON.parse(storedArticles));
+    }
   }, []);
 
   useEffect(() => {
@@ -200,6 +206,7 @@ export default function ArticlesPage() {
       fetchData(searchTerm)
     }
   }, [searchTerm])
+
 
   return (
     <DashboardLayout>
@@ -254,7 +261,7 @@ export default function ArticlesPage() {
                   <CustomSelect
                     options={rubricOptions}
                     value={articleData.rubricId}
-                    onSelect={(value) => setArticleData(prev => ({ ...prev, rubricId: value }))}
+                    onSelect={(value) => handleInputChange('rubricId')({ target: { value } } as any)}
                     placeholder="Sélectionner une rubrique"
                     className="mt-1"
                   />
@@ -267,8 +274,21 @@ export default function ArticlesPage() {
                   <Input
                     id="title"
                     value={articleData.title}
-                    onChange={(e) => setArticleData(prev => ({ ...prev, title: e.target.value }))}
+                    onChange={(e) => handleInputChange('title')(e)}
                     placeholder="Entrez le titre de l'article"
+                    className="mt-1 border-gray-200 focus:border-[#074020] focus:ring-[#074020]/20"
+                    disabled={isLoading}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="head" className="text-sm font-medium">
+                    Chapeau :
+                  </Label>
+                  <Input
+                    id="head"
+                    value={articleData.head}
+                    onChange={(e) => handleInputChange('head')(e)}
+                    placeholder="Entrez le chapeau de l'article"
                     className="mt-1 border-gray-200 focus:border-[#074020] focus:ring-[#074020]/20"
                     disabled={isLoading}
                   />
@@ -281,7 +301,7 @@ export default function ArticlesPage() {
                   <textarea
                     id="content"
                     value={articleData.content}
-                    onChange={(e) => setArticleData(prev => ({ ...prev, content: e.target.value }))}
+                    onChange={(e) => handleInputChange('content')(e)}
                     placeholder="Rédigez votre article..."
                     rows={8}
                     className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-[#074020] focus:ring-2 focus:ring-[#074020]/20 focus:outline-none resize-none"
@@ -344,7 +364,7 @@ export default function ArticlesPage() {
                     variant="outline"
                     onClick={() => {
                       setShowCreateForm(false);
-                      setArticleData({ title: "", content: "", rubricId: "" });
+                      setArticleData({ title: "", content: "", rubricId: "", head: "" });
                       setFiles(null);
                     }}
                     disabled={isLoading}

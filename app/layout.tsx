@@ -1,5 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: 'Communal Admin - Système d\'administration',
@@ -15,6 +16,7 @@ export default function RootLayout({
     <html lang="fr">
       <body className="font-sofia antialiased">
         {children}
+        <Toaster richColors position="top-right" />
       </body>
     </html>
   );

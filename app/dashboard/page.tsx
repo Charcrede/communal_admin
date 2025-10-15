@@ -2,7 +2,7 @@
 
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
+import { Toaster, toast } from "sonner";
 import { getRole, getToken } from "@/lib/auth";
 import { DashboardOverview } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
@@ -26,7 +26,7 @@ export default function DashboardPage() {
       console.log(dashboard.data);
       setStats(dashboard.data.data);
     } catch (error) {
-      console.error("Erreur lors du chargement des données");
+      toast.error("Erreur lors du chargement des données");
     }
   };
   useEffect(() => {

@@ -11,6 +11,7 @@ export interface Article {
   title: string;
   content: string;
   rubric_id: string;
+  head: string;
   rubric?: Rubric;
   media: Media[];
   created_at: string;
@@ -23,6 +24,7 @@ export interface Media {
   description: string;
   type: 'image' | 'video' | 'audio';
   url: string;
+  youtubeUrl?: string;
   filename: string;
   size: number;
   created_at: string;
@@ -42,6 +44,7 @@ export interface CreateArticleData {
   title: string;
   content: string;
   rubricId: string;
+  head: string;
   media?: File[];
 }
 
@@ -53,6 +56,7 @@ export interface CreateRubricData {
 export interface CreateMediaData {
   title: string;
   description: string;
+  youtubeUrl: string;
   file: File;
 }
 

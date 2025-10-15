@@ -18,8 +18,9 @@ export default function MediasPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [mediaData, setMediaData] = useState<CreateMediaData>({
-    title: "",
+    title: "Titre du média",
     description: "",
+    youtubeUrl: "",
     file: null as any,
   });
 
@@ -51,53 +52,84 @@ export default function MediasPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!mediaData.title.trim() || !mediaData.description.trim() || !mediaData.file) {
-      toast.error("Veuillez remplir tous les champs et sélectionner un fichier");
+
+    if (!mediaData.title.trim() || !mediaData.description.trim()) {
+      toast.error("Veuillez remplir le titre et la description");
+      return;
+    }
+
+    if (!mediaData.file && !mediaData.youtubeUrl?.trim()) {
+      toast.error("Veuillez ajouter un fichier ou un lien YouTube");
       return;
     }
 
     setIsLoading(true);
-    
-    try {
-      const formData = new FormData();
-      formData.append("title", mediaData.title);
-      formData.append("description", mediaData.description);
-      formData.append("file", mediaData.file);
 
-      await axios.post(`${apiUrl}/medias/`, formData, {
-        headers: { 
-          Authorization: `Bearer ${getToken()}`,
-          "Content-Type": "multipart/form-data"
-        }
-      });
-      
-      toast.success("Média créé avec succès !");
-      setMediaData({ title: "", description: "", file: null as any });
+    try {
+      // 🔹 Cas 1 : Upload d’un fichier
+      if (mediaData.file) {
+        const formData = new FormData();
+        formData.append("title", mediaData.title);
+        formData.append("description", mediaData.description);
+        formData.append("file", mediaData.file);
+
+        await axios.post(`${apiUrl}/medias/`, formData, {
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        toast.success("📁 Média uploadé avec succès !");
+      }
+      // 🔹 Cas 2 : Lien YouTube
+      else if (mediaData.youtubeUrl?.trim()) {
+        await axios.post(
+          `${apiUrl}/medias/`,
+          {
+            title: mediaData.title,
+            description: mediaData.description,
+            youtubeUrl: mediaData.youtubeUrl,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${getToken()}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        toast.success("🎥 Lien YouTube ajouté avec succès !");
+      }
+
+      // ✅ Réinitialisation
+      setMediaData({ title: "Titre du média", description: "", file: null as any, youtubeUrl: "" });
       setShowCreateForm(false);
       fetchMedias();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Erreur lors de la création");
+      console.error(error);
+      toast.error(error.response?.data?.message || "Erreur lors de la création du média");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce média ?")) {
-      return;
-    }
+    if (!confirm("Êtes-vous sûr de vouloir supprimer ce média ?")) return;
 
     try {
       await axios.delete(`${apiUrl}/medias/${id}`, {
-        headers: { Authorization: `Bearer ${getToken()}` }
+        headers: { Authorization: `Bearer ${getToken()}` },
       });
-      toast.success("Média supprimé avec succès !");
+
+      toast.success("🗑️ Média supprimé avec succès !");
       fetchMedias();
     } catch (error: any) {
+      console.error(error);
       toast.error(error.response?.data?.message || "Erreur lors de la suppression");
     }
   };
+
 
   const getMediaIcon = (type: string) => {
     switch (type) {
@@ -155,13 +187,13 @@ export default function MediasPage() {
               Gérez vos images, vidéos et fichiers audio
             </p>
           </div>
-          {/* <Button
+          <Button
             onClick={() => setShowCreateForm(true)}
             className="bg-[#074020] hover:bg-[#074020]/90 text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
             Nouveau média
-          </Button> */}
+          </Button>
         </div>
 
         {/* Search */}
@@ -175,48 +207,51 @@ export default function MediasPage() {
           />
         </div> */}
 
-        {/* Create Form */}
-        {/* {showCreateForm && (
+        {showCreateForm && (
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="text-xl font-bold text-[#940806] font-sofia uppercase">
                 Ajouter un nouveau média
               </CardTitle>
               <CardDescription>
-                Uploadez une image, vidéo ou fichier audio
+                Uploadez un fichier ou entrez un lien YouTube
               </CardDescription>
             </CardHeader>
+
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <Label htmlFor="title" className="text-sm font-medium">
-                    Titre du média :
-                  </Label>
-                  <Input
-                    id="title"
-                    value={mediaData.title}
-                    onChange={(e) => setMediaData(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="Entrez le titre du média"
-                    className="mt-1 border-gray-200 focus:border-[#074020] focus:ring-[#074020]/20"
-                    disabled={isLoading}
-                  />
-                </div>
-                
+                {/* 📝 Champ description */}
                 <div>
                   <Label htmlFor="description" className="text-sm font-medium">
                     Description :
                   </Label>
-                  <textarea
+                  <Input
                     id="description"
                     value={mediaData.description}
                     onChange={(e) => setMediaData(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Décrivez ce média..."
-                    rows={4}
-                    className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-xl focus:border-[#074020] focus:ring-2 focus:ring-[#074020]/20 focus:outline-none resize-none"
+                    className="mt-1 border-gray-200 focus:border-[#074020] focus:ring-[#074020]/20"
                     disabled={isLoading}
                   />
                 </div>
 
+                {/* 🎥 Lien YouTube */}
+                <div>
+                  <Label htmlFor="youtubeUrl" className="text-sm font-medium">
+                    Lien YouTube (optionnel) :
+                  </Label>
+                  <Input
+                    id="youtubeUrl"
+                    type="text"
+                    value={mediaData.youtubeUrl}
+                    onChange={(e) => setMediaData(prev => ({ ...prev, youtubeUrl: e.target.value }))}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    className="mt-1 border-gray-200 focus:border-[#074020] focus:ring-[#074020]/20"
+                    disabled={isLoading}
+                  />
+                </div>
+
+                {/* 📁 Upload fichier */}
                 <div className="border border-gray-200 rounded-lg p-4">
                   <Label className="text-sm font-medium mb-2 block">
                     Fichier :
@@ -240,7 +275,7 @@ export default function MediasPage() {
                         />
                       </label>
                     </div>
-                    
+
                     {mediaData.file && (
                       <div className="bg-gray-50 px-4 py-3 rounded-lg">
                         <div className="flex items-center justify-between">
@@ -267,13 +302,14 @@ export default function MediasPage() {
                   </div>
                 </div>
 
+                {/* 🔘 Boutons */}
                 <div className="flex gap-3 justify-end">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => {
                       setShowCreateForm(false);
-                      setMediaData({ title: "", description: "", file: null as any });
+                      setMediaData({ title: "Titre du média", description: "", file: null as any, youtubeUrl: "" });
                     }}
                     disabled={isLoading}
                   >
@@ -284,13 +320,14 @@ export default function MediasPage() {
                     className="bg-[#074020] hover:bg-[#074020]/90 text-white font-bold uppercase"
                     disabled={isLoading}
                   >
-                    {isLoading ? "Upload..." : "Créer"}
+                    {isLoading ? "Envoi..." : "Créer"}
                   </Button>
                 </div>
               </form>
             </CardContent>
           </Card>
-        )} */}
+        )}
+
 
         {/* Medias Grid */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -311,7 +348,7 @@ export default function MediasPage() {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-1">
                     <button className="p-2 text-gray-400 hover:text-[#074020] hover:bg-gray-100 rounded-lg transition-colors">
                       <Eye className="w-4 h-4" />
@@ -319,7 +356,7 @@ export default function MediasPage() {
                     <button className="p-2 text-gray-400 hover:text-[#074020] hover:bg-gray-100 rounded-lg transition-colors">
                       <Edit className="w-4 h-4" />
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDelete(media.id)}
                       className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     >
@@ -328,13 +365,13 @@ export default function MediasPage() {
                   </div>
                 </div>
               </CardHeader>
-              
+
               {/* Media Preview */}
               {media.type === 'image' ? (
                 <div className="px-6 pb-4">
-                  <div className="w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
-                    <img 
-                      src={media.url} 
+                  <div className="w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
+                    <img
+                      src={media.url}
                       alt={media.title}
                       className="w-full h-full object-cover"
                     />
@@ -342,15 +379,22 @@ export default function MediasPage() {
                 </div>
               ) : media.type === 'video' ? (
                 <div className="px-6 pb-4">
-                  <div className="w-full h-32 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-                    <video
-                      src={media.url}
-                      controls
-                      className="w-full h-full object-cover"
-                    />
+                  <div className="w-full h-64 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                    {media.youtubeUrl ? (
+                      <iframe
+                        className="w-full h-full"
+                        src={media.youtubeUrl.replace('youtu.be/', 'www.youtube.com/embed/').replace('watch?v=', 'embed/')}
+                        title={media.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      ></iframe>
+                    ) : (
+                      <video src={media.url} controls className="w-full h-64 object-cover" />
+                    )}
                   </div>
                 </div>
               ) : null}
+
 
               <CardContent className="pt-0">
                 <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">
@@ -374,7 +418,7 @@ export default function MediasPage() {
                 {searchTerm ? "Aucun média trouvé" : "Aucun média uploadé"}
               </h3>
               <p className="text-gray-600 mb-4">
-                {searchTerm 
+                {searchTerm
                   ? "Essayez de modifier votre recherche"
                   : "Commencez par uploader votre premier média"
                 }

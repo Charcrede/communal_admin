@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  // const toast = new Toast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +33,7 @@ export default function LoginPage() {
     try {
       await login(credentials);
       toast.success('Connexion réussie !');
+      console.log('Redirection vers le tableau de bord...')
       router.push('/dashboard');
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erreur de connexion');
